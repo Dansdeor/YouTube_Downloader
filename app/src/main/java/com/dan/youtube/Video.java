@@ -15,13 +15,19 @@ class Video implements Runnable {
 
     public Video(Map item) {
         this.item = item;
+        name = (String) item.get("title");
+        ID = (String) ((Map) item.get("resourceId")).get("videoId");
+    }
+
+    public Video(Map item, String ID) {
+        this.item = item;
+        name = (String) item.get("title");
+        this.ID = ID;
     }
 
     @Override
     public void run() {
         try {
-            name = (String) item.get("title");
-            ID = (String) ((Map) item.get("resourceId")).get("videoId");
             URL url = new URL(((Map) ((Map) item.get("thumbnails")).get("default")).get("url").toString());
             image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
         } catch (Exception e) {

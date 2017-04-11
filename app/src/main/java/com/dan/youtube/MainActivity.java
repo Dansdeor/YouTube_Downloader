@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     String Path;
     String KEY = "";//You need to add your google api key
-    String playlistURL = "https://www.googleapis.com/youtube/v3/playlistItems?maxResults=50&part=snippet&key="+ KEY;
+    String playlistURL = "https://www.googleapis.com/youtube/v3/playlistItems?maxResults=50&part=snippet&key=" + KEY;
     String VideoURL = "https://www.googleapis.com/youtube/v3/videos?part=snippet&key=" + KEY;
     ArrayList<Video> videos;
     ListView listView;
@@ -31,21 +31,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         listView = ((ListView) findViewById(R.id.listView));
+        Path = Environment.getExternalStorageDirectory().getPath() + "/" + Environment.DIRECTORY_MUSIC;
         videos = new ArrayList();
-        Path = Environment.getExternalStorageDirectory().getPath()+"/"+Environment.DIRECTORY_MUSIC;
     }
 
     public void onClickLoad(View view) {
+        int index;
         if (view.getId() == R.id.load) {
-            int index;
             ((CheckBox) findViewById(R.id.checkBox)).setChecked(true);
-            String id = ((EditText)findViewById(R.id.url)).getText().toString();
+            String id = ((EditText) findViewById(R.id.url)).getText().toString();
             if ((index = id.lastIndexOf("&list=")) != -1) {
                 PlayListView(playlistURL + "&playlistId=" + id.substring(index + "&list=".length()));
             } else if ((index = id.lastIndexOf("?v=")) != -1) {
-                PlayListView(VideoURL + "&id=" + id.substring(index + "?v=".length()));
+                SingleSongView(VideoURL + "&id=" + id.substring(index + "?v=".length()));
             } else if ((index = id.lastIndexOf("/")) != -1) {
-                    PlayListView(VideoURL + "&id=" + id.substring(index + 1));
+                SingleSongView(VideoURL + "&id=" + id.substring(index + 1));
             } else
                 ((CheckBox) findViewById(R.id.checkBox)).setChecked(false);
         }
@@ -117,6 +117,24 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < names.length; i++) {
                 names[i] = videos.get(i).getName();
             }
+            CustomList adapter = new CustomList(this, videos, names);
+            listView.setAdapter(adapter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void SingleSongView(String url) {
+        Map json;
+        try {
+            videos.clear();
+            json = new GetJson().execute(url).get();
+            ArrayList items = (ArrayList) json.get("items");
+            Video video = new Video(((Map)((Map) items.get(0)).get("snippet")),url.substring(url.lastIndexOf("=") + 1));
+            new Thread(video).start();
+            videos.add(video);
+            String[] names = new String[1];
+            names[0] = videos.get(0).getName();
             CustomList adapter = new CustomList(this, videos, names);
             listView.setAdapter(adapter);
         } catch (Exception e) {
